@@ -12,4 +12,3 @@
 
 **With another day:** LLM-generated narrative summaries over the returned rows, filters (product/region/date range), chart in the UI, refund-netting option, Docker, evaluation set for the interpreter, and a validated read-only text-to-SQL mode.
 
-**Interview prep:** be ready to explain why routing beat text-to-SQL, the revenue formula, and how to add a new intent (one function in `analytics.py` + one line in `INTENTS`).
