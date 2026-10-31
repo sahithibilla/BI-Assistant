@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Mini AI BI Assistant</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:820px;margin:2rem auto;padding:0 1rem;color:#222}
+input{width:75%;padding:.6rem;font-size:1rem}button{padding:.6rem 1rem;font-size:1rem}
+.chips span{display:inline-block;background:#eef;padding:.25rem .6rem;margin:.2rem;border-radius:1rem;cursor:pointer;font-size:.85rem}
+#ans{font-size:1.15rem;font-weight:600;margin:1rem 0}.err{color:#b00020}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:.3rem .5rem;text-align:left}
+pre{background:#f5f5f5;padding:.6rem;overflow:auto}small{color:#666}
+</style></head><body>
+<h2>Mini AI BI Assistant</h2>
+<input id="q" placeholder="Ask about the sales data..." onkeydown="if(event.key==='Enter')ask()">
+<button onclick="ask()">Ask</button>
+<div class="chips" id="chips"></div>
+<div id="out"></div>
+<script>
+const ex=["What is the total revenue?","Which product generated the highest revenue?","What is the monthly revenue trend?","Which region generated the highest sales?","How did revenue change between March and April?"];
+chips.innerHTML=ex.map(e=>`<span onclick="q.value='${e}';ask()">${e}</span>`).join("");
+const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+async function ask(){
+  const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q.value})});
+  const d=await r.json();
+  if(!r.ok){out.innerHTML=`<p class="err">${esc(d.detail)}</p>`;return}
+  const dq=d.data_quality;
+  out.innerHTML=`<div id="ans">${esc(d.answer)}</div>
+  <table><tr>${d.columns.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>
+  ${d.rows.map(r=>`<tr>${r.map(v=>`<td>${typeof v==="number"?v.toLocaleString():esc(v)}</td>`).join("")}</tr>`).join("")}</table>
+  <p><small>Intent: ${d.intent} (via ${d.interpreted_by}). Used ${dq.valid_rows}/${dq.total_rows} rows; excluded: ${dq.excluded.map(e=>e.Transaction_Id+" ("+e.invalid_reason+")").join(", ")}</small></p>
+  <details><summary>SQL used</summary><pre>${esc(d.sql)}</pre></details>`;
+}
+</script></body></html>
